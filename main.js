@@ -56,13 +56,15 @@ import {
 const meshes = []
 const bodies = []
 
+
+const cameraDistance = [0,5,-10] // Distance between sled and camera
+
 // --------------------------- THREE JS---------------------------------
 const scene = new Scene();
 const aspect = window.innerWidth / window.innerHeight;
 
 const camera = new PerspectiveCamera(75, aspect, 0.1, 1000);
-// camera.position.set(-10, 5, 0);
-camera.position.set(-5, 10, -10);
+camera.position.set(cameraDistance[0],cameraDistance[1],cameraDistance[2]);
 
 // const helper = new CameraHelper( camera ); 
 // scene.add( helper );
@@ -81,7 +83,9 @@ controls.listenToKeyEvents(window); // optional
 
 
 // -------- MESHES -----------
-const groundGeometry = new PlaneGeometry(100, 100, 1, 1)
+
+// Ground
+const groundGeometry = new PlaneGeometry(100, 1000, 1, 1)
 // groundGeometry.quaternion.setFromEuler(new Euler(-Math.PI / 2.2, 0, 0, 'XYZ'))
 
 const groundMaterial = new MeshPhongMaterial({ color: 0xeeeeff });
@@ -108,11 +112,13 @@ const treeMaterial = new MeshNormalMaterial();
 const treeMeshes = []
 const treePositions = []
 
-for (let i = 0; i < 30; i++) {
+// Generating trees at random
+const nbOfTrees = 150
+for (let i = 0; i < nbOfTrees; i++) {
   const treeMesh = new Mesh(treeGeometry, treeMaterial)
   treeMesh.castShadow = true
 
-  const treePos = [(Math.random() - 0.5) * 40, - (Math.random() * 40 + 5), 2]
+  const treePos = [(Math.random() - 0.5) * 50, - (Math.random() * 500 + 5), 2]
   treeMesh.position.set(treePos[0], treePos[1], treePos[2])
 
   ground.add(treeMesh)
@@ -123,11 +129,6 @@ for (let i = 0; i < 30; i++) {
 console.log(treePositions)
 
 
-// const treePos2 = [-8, -10, 2]
-
-
-// treeMesh.position.set(treePos2[0], treePos2[1], treePos2[2])
-// meshes.push(treeMesh)
 
 
 
@@ -196,7 +197,7 @@ world.addBody(groundBody)
 const sledShape = new CANNON.Box(new CANNON.Vec3(0.5, 0.25, 1.5))
 const sledBody = new CANNON.Body({ mass: 5, material: slipperyMaterial })
 sledBody.addShape(sledShape)
-sledBody.position.set(0, 3, 0)
+sledBody.position.set(0, 1, 0)
 bodies.push(sledBody)
 world.addBody(sledBody)
 
@@ -217,7 +218,7 @@ world.addBody(sledBody)
 // world.addBody(sphereBody)
 
 
-// CONTROLES
+// CONTROLS
 
 let moving = null
 const handleMovement = (e) => {
@@ -255,10 +256,10 @@ const animation = () => {
   const delta = clock.getDelta();
 
   if (moving == "left") {
-    sledBody.position.x += delta;
+    sledBody.position.x += 2*delta;
   }
   if (moving == "right") {
-    sledBody.position.x -= delta;
+    sledBody.position.x -= 2*delta;
   } else {
 
   }
@@ -274,7 +275,11 @@ const animation = () => {
   }
 
 
+  camera.position.set(sledBody.position.x + cameraDistance[0],
+    sledBody.position.y + cameraDistance[1],
+    sledBody.position.z + cameraDistance[2])
 
+  // camera.position.z = sledBody.position.z + cameraDistance[2]
 
 
   renderer.render(scene, camera);
