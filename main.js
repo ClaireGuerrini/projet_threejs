@@ -12,36 +12,15 @@ import {
   MeshNormalMaterial,
   AmbientLight,
   Clock,
-  CameraHelper,
   AxesHelper,
   PlaneGeometry,
   MeshPhongMaterial,
-  SphereGeometry
 } from 'three';
 
 import * as CANNON from 'cannon-es';
 
 import CannonDebugger from 'cannon-es-debugger'
 
-// If you prefer to import the whole library, with the THREE prefix, use the following line instead:
-// import * as THREE from 'three'
-
-// NOTE: three/addons alias is supported by Rollup: you can use it interchangeably with three/examples/jsm/  
-
-// Importing Ammo can be tricky.
-// Vite supports webassembly: https://vitejs.dev/guide/features.html#webassembly
-// so in theory this should work:
-//
-// import ammoinit from 'three/addons/libs/ammo.wasm.js?init';
-// ammoinit().then((AmmoLib) => {
-//  Ammo = AmmoLib.exports.Ammo()
-// })
-//
-// But the Ammo lib bundled with the THREE js examples does not seem to export modules properly.
-// A solution is to treat this library as a standalone file and copy it using 'vite-plugin-static-copy'.
-// See vite.config.js
-// 
-// Consider using alternatives like Oimo or cannon-es
 import {
   OrbitControls
 } from 'three/addons/controls/OrbitControls.js';
@@ -57,17 +36,16 @@ const meshes = []
 const bodies = []
 
 
-const cameraDistance = [0,5,-10] // Distance between sled and camera
 
-// --------------------------- THREE JS---------------------------------
+
+// --------------------------- THREE JS--------------------------------- //
 const scene = new Scene();
 const aspect = window.innerWidth / window.innerHeight;
 
+const cameraDistance = [0,5,-10] // Distance between sled and camera
 const camera = new PerspectiveCamera(75, aspect, 0.1, 1000);
 camera.position.set(cameraDistance[0],cameraDistance[1],cameraDistance[2]);
 
-// const helper = new CameraHelper( camera ); 
-// scene.add( helper );
 const axesHelper = new AxesHelper(2);
 scene.add(axesHelper);
 
@@ -82,7 +60,22 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.listenToKeyEvents(window); // optional
 
 
-// -------- MESHES -----------
+// ----------------------------- MESHES ----------------------------- //
+
+function gltfReader(gltf) {
+  let mesh = null;
+  mesh = gltf.scene;
+
+  if (mesh != null) {
+    console.log("Model loaded:  " + mesh);
+    meshes.push(mesh)
+    mesh.castShadow = true
+    scene.add(mesh);
+  } else {
+    console.log("Load FAILED.  ");
+  }
+}
+
 
 // Ground
 const groundGeometry = new PlaneGeometry(100, 1000, 1, 1)
@@ -95,13 +88,26 @@ ground.receiveShadow = true
 
 scene.add(ground);
 
+
+
+
+
 // Sled
-const sledGeometry = new BoxGeometry(1, 0.5, 3, 10, 10)
-const sledMaterial = new MeshNormalMaterial();
-const sledMesh = new Mesh(sledGeometry, sledMaterial)
-sledMesh.castShadow = true
-meshes.push(sledMesh)
-scene.add(sledMesh)
+
+
+var loader = new GLTFLoader();
+
+
+const sledLoader = new GLTFLoader()
+    .setPath('assets/models/')
+    .load('sled_scene.glb', gltfReader);
+
+// const sledGeometry = new BoxGeometry(1, 0.5, 3, 10, 10)
+// const sledMaterial = new MeshNormalMaterial();
+// const sledMesh = new Mesh(sledGeometry, sledMaterial)
+// sledMesh.castShadow = true
+// meshes.push(sledMesh)
+// scene.add(sledMesh)
 
 // Trees
 
@@ -132,7 +138,8 @@ console.log(treePositions)
 
 
 
-// ---------------------CANNON-ES PHYSICS -------------------
+// -----------------------------CANNON-ES PHYSICS ----------------------------- //
+
 const world = new CANNON.World({
   gravity: new CANNON.Vec3(0, -9.82, 0), // m/s²
 })
@@ -167,6 +174,15 @@ const slippery_ground = new CANNON.ContactMaterial(groundCannonMaterial, slipper
 
 world.addContactMaterial(slippery_ground)
 
+// Sled 
+
+const sledShape = new CANNON.Box(new CANNON.Vec3(0.5, 0.25, 1.5))
+const sledBody = new CANNON.Body({ mass: 5, material: slipperyMaterial })
+sledBody.addShape(sledShape)
+sledBody.position.set(0, 1, 0)
+bodies.push(sledBody)
+world.addBody(sledBody)
+
 // Ground and trees
 
 //ground
@@ -192,14 +208,7 @@ world.addBody(groundBody)
 
 
 
-// Sled 
 
-const sledShape = new CANNON.Box(new CANNON.Vec3(0.5, 0.25, 1.5))
-const sledBody = new CANNON.Body({ mass: 5, material: slipperyMaterial })
-sledBody.addShape(sledShape)
-sledBody.position.set(0, 1, 0)
-bodies.push(sledBody)
-world.addBody(sledBody)
 
 //Trees
 // const treeShape = new CANNON.Box(new CANNON.Vec3(0.5, 2.5, 0.5))
@@ -256,10 +265,10 @@ const animation = () => {
   const delta = clock.getDelta();
 
   if (moving == "left") {
-    sledBody.position.x += 2*delta;
+    sledBody.position.x += 5*delta;
   }
   if (moving == "right") {
-    sledBody.position.x -= 2*delta;
+    sledBody.position.x -= 5*delta;
   } else {
 
   }
