@@ -1,7 +1,6 @@
 "use strict";
 
-// Import only what you need, to help your bundler optimize final code size using tree shaking
-// see https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking)
+
 
 import {
   PerspectiveCamera,
@@ -31,12 +30,6 @@ import {
   GLTFLoader
 } from 'three/addons/loaders/GLTFLoader.js';
 
-// Example of hard link to official repo for data, if needed
-// const MODEL_PATH = 'https://raw.githubusercontent.com/mrdoob/js/r148/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb';
-
-const meshes = []
-const bodies = []
-
 
 
 
@@ -61,7 +54,8 @@ document.body.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.listenToKeyEvents(window); // optional
 
-
+const meshes = []
+const bodies = []
 
 
 // --------------------------- CANNON-ES physics  - Global Settings --------------------------------- //
