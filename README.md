@@ -1,19 +1,17 @@
-# three_vite
-Basic THREE.js template using [Vite](https://vitejs.dev).
+# Mini jeu THREE.js : Super Sledding
 
-Allows testing and modifying [official THREE.js examples](https://threejs.org/examples/) locally, at lightning speed.
-After trying Parcel and Rollup, this is probably the most developer-friendly to start THREE.js development in 2023 : it's insanely fast, it supports live reload out of the box, while remaining simple to use and to extend.
+Dans ce jeu web 3D développé avec Three.js, dévalez une pente enneigée en luge en évitant de vous prendre les arbres ! 
 
-## Batteries included
+![game screenshot](screenshot.png)
 
-Pre-configured to support :
+Développé à partir du template [three_vite](https://github.com/fdoganis/three_vite) de fdoganis.
 
-- glTF file loading
-- ammo.js wasm physics library
-- VSCode launch scripts
-- THREE.js type definitions : for IntelliSense in VS Code
+## But du jeu
+Simplement descendre en toute liberté la pente en déplaçant la luge sur l'axe gauche-droite pour esquiver les arbres (les collisions entraînant une perte de contrôle grâce à une physique extrêmement réaliste)
 
-Have a look at vite.config.js and customize it to your needs (additional libraries, file formats etc.).
+## Commandes
+- Touche <b>Q</b> du clavier : déplacer la luge vers la gauche
+- Touche <b>D</b> du clavier : déplacer la luge vers la droite
 
 ## Installation
 
