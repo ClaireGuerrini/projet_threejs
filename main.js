@@ -15,6 +15,8 @@ import {
   AxesHelper,
   PlaneGeometry,
   MeshPhongMaterial,
+  Vector3,
+  Quaternion
 } from 'three';
 
 import * as CANNON from 'cannon-es';
@@ -38,16 +40,16 @@ const bodies = []
 
 
 
-// --------------------------- THREE JS--------------------------------- //
+// --------------------------- THREE JS  - Global Settings --------------------------------- //
 const scene = new Scene();
 const aspect = window.innerWidth / window.innerHeight;
 
-const cameraDistance = [0,5,-10] // Distance between sled and camera
+const cameraDistance = [0, 3, -5] // Distance between sled and camera
 const camera = new PerspectiveCamera(75, aspect, 0.1, 1000);
-camera.position.set(cameraDistance[0],cameraDistance[1],cameraDistance[2]);
+camera.position.set(cameraDistance[0], cameraDistance[1], cameraDistance[2]);
 
-const axesHelper = new AxesHelper(2);
-scene.add(axesHelper);
+// const axesHelper = new AxesHelper(2);
+// scene.add(axesHelper);
 
 const light = new AmbientLight(0xffffff, 1.0); // soft white light
 scene.add(light);
@@ -60,93 +62,17 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.listenToKeyEvents(window); // optional
 
 
-// ----------------------------- MESHES ----------------------------- //
-
-function gltfReader(gltf) {
-  let mesh = null;
-  mesh = gltf.scene;
-
-  if (mesh != null) {
-    console.log("Model loaded:  " + mesh);
-    meshes.push(mesh)
-    mesh.castShadow = true
-    scene.add(mesh);
-  } else {
-    console.log("Load FAILED.  ");
-  }
-}
 
 
-// Ground
-const groundGeometry = new PlaneGeometry(100, 1000, 1, 1)
-// groundGeometry.quaternion.setFromEuler(new Euler(-Math.PI / 2.2, 0, 0, 'XYZ'))
-
-const groundMaterial = new MeshPhongMaterial({ color: 0xeeeeff });
-
-const ground = new Mesh(groundGeometry, groundMaterial);
-ground.receiveShadow = true
-
-scene.add(ground);
-
-
-
-
-
-// Sled
-
-
-var loader = new GLTFLoader();
-
-
-const sledLoader = new GLTFLoader()
-    .setPath('assets/models/')
-    .load('sled_scene.glb', gltfReader);
-
-// const sledGeometry = new BoxGeometry(1, 0.5, 3, 10, 10)
-// const sledMaterial = new MeshNormalMaterial();
-// const sledMesh = new Mesh(sledGeometry, sledMaterial)
-// sledMesh.castShadow = true
-// meshes.push(sledMesh)
-// scene.add(sledMesh)
-
-// Trees
-
-const treeSize = [1, 5, 1]
-const treeGeometry = new BoxGeometry(treeSize[0], treeSize[1], treeSize[2], 10, 10)
-const treeMaterial = new MeshNormalMaterial();
-
-const treeMeshes = []
-const treePositions = []
-
-// Generating trees at random
-const nbOfTrees = 150
-for (let i = 0; i < nbOfTrees; i++) {
-  const treeMesh = new Mesh(treeGeometry, treeMaterial)
-  treeMesh.castShadow = true
-
-  const treePos = [(Math.random() - 0.5) * 50, - (Math.random() * 500 + 5), 2]
-  treeMesh.position.set(treePos[0], treePos[1], treePos[2])
-
-  ground.add(treeMesh)
-
-  treeMeshes.push(treeMesh)
-  treePositions.push(treePos)
-}
-console.log(treePositions)
-
-
-
-
-
-// -----------------------------CANNON-ES PHYSICS ----------------------------- //
+// --------------------------- CANNON-ES physics  - Global Settings --------------------------------- //
 
 const world = new CANNON.World({
   gravity: new CANNON.Vec3(0, -9.82, 0), // m/s²
 })
 
-const cannonDebugger = new CannonDebugger(scene, world, {
-  // options...
-})
+// const cannonDebugger = new CannonDebugger(scene, world, {
+//   // options...
+// })
 
 // Material Physics
 
@@ -174,7 +100,33 @@ const slippery_ground = new CANNON.ContactMaterial(groundCannonMaterial, slipper
 
 world.addContactMaterial(slippery_ground)
 
-// Sled 
+
+
+
+
+
+// ----------------------------- SLED ----------------------------- //
+
+// Mesh
+const sledLoader = new GLTFLoader()
+  .setPath('assets/models/')
+  .load('sled_scene.glb', function (gltf) {
+
+    let mesh = null;
+    mesh = gltf.scene;
+
+    if (mesh != null) {
+      console.log("Model loaded:  " + mesh);
+      meshes.push(mesh)
+      mesh.castShadow = true
+      scene.add(mesh);
+    } else {
+      console.log("Load FAILED.  ");
+    }
+  });
+
+
+// CANNON-ES physics
 
 const sledShape = new CANNON.Box(new CANNON.Vec3(0.5, 0.25, 1.5))
 const sledBody = new CANNON.Body({ mass: 5, material: slipperyMaterial })
@@ -183,9 +135,25 @@ sledBody.position.set(0, 1, 0)
 bodies.push(sledBody)
 world.addBody(sledBody)
 
-// Ground and trees
 
-//ground
+
+
+
+// ----------------------------- GROUND ----------------------------- //
+
+// Mesh
+const groundGeometry = new PlaneGeometry(100, 1000, 1, 1)
+
+const groundMaterial = new MeshPhongMaterial({ color: 0xbbbbdddddff });
+
+const ground = new Mesh(groundGeometry, groundMaterial);
+ground.receiveShadow = true
+
+scene.add(ground);
+
+
+// CANNON-ES physics
+
 const groundShape = new CANNON.Plane()
 const groundBody = new CANNON.Body({ mass: 0, material: groundCannonMaterial })
 groundBody.addShape(groundShape)
@@ -193,16 +161,60 @@ groundBody.quaternion.setFromEuler(-Math.PI / 2.2, 0, 0)
 
 ground.quaternion.copy(groundBody.quaternion)
 
-//trees
 
-for (let i = 0; i < treeMeshes.length; i++) {
-  const treeShape = new CANNON.Box(new CANNON.Vec3(treeSize[0] / 2, treeSize[1] / 2, treeSize[2] / 2))
-  groundBody.addShape(treeShape, new CANNON.Vec3(treePositions[i][0], treePositions[i][1], treePositions[i][2]), groundBody.quaternion)
 
-  treeMeshes[i].quaternion.copy(groundBody.quaternion)
 
-}
 
+// ----------------------------- TREES ----------------------------- //
+
+const treeSize = [1, 5, 1]
+
+// Generating trees at random
+const nbOfTrees = 150
+
+function addTrees() {
+  new GLTFLoader()
+    .setPath('assets/models/')
+    .load('tree_scene.glb', function (gltf) {
+
+      let mesh = null;
+      mesh = gltf.scene;
+
+      if (mesh != null) {
+
+        console.log("Model loaded:  " + mesh);
+
+        for (let i = 0; i < nbOfTrees; i++) {
+
+          // Mesh
+          let treeMesh = mesh.clone()
+          treeMesh.castShadow = true
+
+          const treePos = [(Math.random() - 0.5) * 50, - (Math.random() * 500 + 5), 2]
+          treeMesh.position.set(treePos[0], treePos[1], treePos[2])
+
+          ground.add(treeMesh)
+
+
+          // CANNON-ES Physics
+          const treeShape = new CANNON.Box(new CANNON.Vec3(treeSize[0] / 2, treeSize[1] / 2, treeSize[2] / 2))
+          groundBody.addShape(treeShape, new CANNON.Vec3(treePos[0], treePos[1], treePos[2]), groundBody.quaternion)
+
+          treeMesh.quaternion.copy(groundBody.quaternion)
+          const upsideDownQuaternion = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI);
+          treeMesh.quaternion.premultiply(upsideDownQuaternion)
+        }
+
+
+      } else {
+        console.log("Load FAILED.  ");
+      }
+
+    })
+
+};
+
+addTrees();
 
 world.addBody(groundBody)
 
@@ -210,24 +222,8 @@ world.addBody(groundBody)
 
 
 
-//Trees
-// const treeShape = new CANNON.Box(new CANNON.Vec3(0.5, 2.5, 0.5))
-// const treeBody = new CANNON.Body({ mass: 5, material: groundCannonMaterial })
-// treeBody.addShape(treeShape)
-// treeBody.position.set(0, 5, 5)
-// bodies.push(treeBody)
-// world.addBody(treeBody)
-
-
-// const sphereShape = new CANNON.Sphere(1)
-// const sphereBody = new CANNON.Body({ mass: 5, shape: sphereShape })
-// sphereBody.addShape(sphereShape)
-// sphereBody.position.set(0, 10, 0)
-// bodies.push(sphereBody)
-// world.addBody(sphereBody)
-
-
-// CONTROLS
+//----------------------------------------------------------------------------//
+// ------------------------------- CONTROLS --------------------------------- //
 
 let moving = null
 const handleMovement = (e) => {
@@ -252,8 +248,8 @@ window.addEventListener("keydown", handleMovement)
 window.addEventListener("keyup", stopMovement)
 
 
-
-// ANIMATION LOOP
+//----------------------------------------------------------------------------//
+// ----------------------------- ANIMATION LOOP ----------------------------- //
 
 const clock = new Clock();
 
@@ -265,10 +261,10 @@ const animation = () => {
   const delta = clock.getDelta();
 
   if (moving == "left") {
-    sledBody.position.x += 5*delta;
+    sledBody.position.x += 5 * delta;
   }
   if (moving == "right") {
-    sledBody.position.x -= 5*delta;
+    sledBody.position.x -= 5 * delta;
   } else {
 
   }
@@ -276,7 +272,7 @@ const animation = () => {
   // const elapsed = clock.getElapsedTime();
 
   world.fixedStep()
-  cannonDebugger.update()
+  // cannonDebugger.update()
 
   for (let i = 0; i !== meshes.length; i++) {
     meshes[i].position.copy(bodies[i].position)
@@ -288,7 +284,6 @@ const animation = () => {
     sledBody.position.y + cameraDistance[1],
     sledBody.position.z + cameraDistance[2])
 
-  // camera.position.z = sledBody.position.z + cameraDistance[2]
 
 
   renderer.render(scene, camera);
