@@ -15,13 +15,13 @@ Simplement descendre en toute liberté la pente en déplaçant la luge sur l'axe
 
 ## Installation
 
-Install [Node.js](https://nodejs.org)
+Si vous voulez tester le jeu en local et y apporter des modifications :
 
-- Clone or download repo
-- run `npm install` : fetches and install all dependencies
-- `npm run build` : packages all code and resources into the `dist` folder
-- `npm run dev` : launches a server and opens your browser in `https://localhost:5173` by default
-- Edit your code : your changes are reflected instantly!
+- Installez [Node.js](https://nodejs.org) si ce n'est pas déjà fait
+- Clonez le dépôt git
+- exécuter `npm install` : recherche et installe toutes les dépendances
+- `npm run build` : empaquette tout le code et les ressources dans le dossier `dist` 
+- `npm run dev` : lance un serveur et ouvre le navigateur sur l'url `https://localhost:5173`
 
 
 
