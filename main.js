@@ -1,23 +1,7 @@
 "use strict";
 
-// Import only what you need, to help your bundler optimize final code size using tree shaking
-// see https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking)
 
-import {
-  PerspectiveCamera,
-  Scene,
-  WebGLRenderer,
-  BoxGeometry,
-  Mesh,
-  MeshNormalMaterial,
-  AmbientLight,
-  Clock,
-  AxesHelper,
-  PlaneGeometry,
-  MeshPhongMaterial,
-  Vector3,
-  Quaternion
-} from 'three';
+import * as THREE from 'three'
 
 import * as CANNON from 'cannon-es';
 
@@ -31,37 +15,32 @@ import {
   GLTFLoader
 } from 'three/addons/loaders/GLTFLoader.js';
 
-// Example of hard link to official repo for data, if needed
-// const MODEL_PATH = 'https://raw.githubusercontent.com/mrdoob/js/r148/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb';
-
-const meshes = []
-const bodies = []
-
 
 
 
 // --------------------------- THREE JS  - Global Settings --------------------------------- //
-const scene = new Scene();
+const scene = new THREE.Scene();
 const aspect = window.innerWidth / window.innerHeight;
 
 const cameraDistance = [0, 3, -5] // Distance between sled and camera
-const camera = new PerspectiveCamera(75, aspect, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
 camera.position.set(cameraDistance[0], cameraDistance[1], cameraDistance[2]);
 
 // const axesHelper = new AxesHelper(2);
 // scene.add(axesHelper);
 
-const light = new AmbientLight(0xffffff, 1.0); // soft white light
+const light = new THREE.AmbientLight(0xffffff, 1.0); // soft white light
 scene.add(light);
 
-const renderer = new WebGLRenderer();
+const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.listenToKeyEvents(window); // optional
 
-
+const meshes = []
+const bodies = []
 
 
 // --------------------------- CANNON-ES physics  - Global Settings --------------------------------- //
@@ -142,11 +121,11 @@ world.addBody(sledBody)
 // ----------------------------- GROUND ----------------------------- //
 
 // Mesh
-const groundGeometry = new PlaneGeometry(100, 1000, 1, 1)
+const groundGeometry = new THREE.PlaneGeometry(100, 1000, 1, 1)
 
-const groundMaterial = new MeshPhongMaterial({ color: 0xbbbbdddddff });
+const groundMaterial = new THREE.MeshPhongMaterial({ color: 0xbbbbdddddff });
 
-const ground = new Mesh(groundGeometry, groundMaterial);
+const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 ground.receiveShadow = true
 
 scene.add(ground);
@@ -201,7 +180,7 @@ function addTrees() {
           groundBody.addShape(treeShape, new CANNON.Vec3(treePos[0], treePos[1], treePos[2]), groundBody.quaternion)
 
           treeMesh.quaternion.copy(groundBody.quaternion)
-          const upsideDownQuaternion = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI);
+          const upsideDownQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI);
           treeMesh.quaternion.premultiply(upsideDownQuaternion)
         }
 
@@ -251,7 +230,7 @@ window.addEventListener("keyup", stopMovement)
 //----------------------------------------------------------------------------//
 // ----------------------------- ANIMATION LOOP ----------------------------- //
 
-const clock = new Clock();
+const clock = new THREE.Clock();
 
 // Main loop
 const animation = () => {
