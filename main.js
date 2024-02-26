@@ -15,7 +15,10 @@ import {
   PlaneGeometry,
   MeshPhongMaterial,
   Vector3,
-  Quaternion
+  Quaternion,
+  HemisphereLight,
+  DirectionalLight,
+  Color
 } from 'three';
 
 import * as CANNON from 'cannon-es';
@@ -37,6 +40,7 @@ import {
 const scene = new Scene();
 const aspect = window.innerWidth / window.innerHeight;
 
+scene.background = new Color(0xa3c6ff)
 const cameraDistance = [0, 3, -5] // Distance between sled and camera
 const camera = new PerspectiveCamera(75, aspect, 0.1, 1000);
 camera.position.set(cameraDistance[0], cameraDistance[1], cameraDistance[2]);
@@ -44,8 +48,23 @@ camera.position.set(cameraDistance[0], cameraDistance[1], cameraDistance[2]);
 // const axesHelper = new AxesHelper(2);
 // scene.add(axesHelper);
 
-const light = new AmbientLight(0xffffff, 1.0); // soft white light
-scene.add(light);
+// const light = new AmbientLight(0xffffff, 1.0); // soft white light
+// scene.add(light);
+
+// const hlight = new HemisphereLight(0xffffbb, 0x080820, 2);
+// scene.add(hlight);
+
+const hemiLight = new HemisphereLight(0xffffff, 0xffffff, 2);
+hemiLight.color.setHSL(0.6, 1, 0.6);
+hemiLight.groundColor.setHSL(0.095, 1, 0.75);
+hemiLight.position.set(0, 50, 0);
+scene.add(hemiLight);
+
+const dirLight = new DirectionalLight(0xffffff, 3);
+dirLight.color.setHSL(0.1, 1, 0.95);
+dirLight.position.set(- 1, 1.75, 1);
+dirLight.position.multiplyScalar(30);
+scene.add(dirLight);
 
 const renderer = new WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -138,7 +157,7 @@ world.addBody(sledBody)
 // Mesh
 const groundGeometry = new PlaneGeometry(100, 1000, 1, 1)
 
-const groundMaterial = new MeshPhongMaterial({ color: 0xbbbbdddddff });
+const groundMaterial = new MeshPhongMaterial({ color: 0xffffffff });
 
 const ground = new Mesh(groundGeometry, groundMaterial);
 ground.receiveShadow = true
@@ -164,7 +183,7 @@ ground.quaternion.copy(groundBody.quaternion)
 const treeSize = [1, 5, 1]
 
 // Generating trees at random
-const nbOfTrees = 150
+const nbOfTrees = 400
 
 function addTrees() {
   new GLTFLoader()
